@@ -1,13 +1,1 @@
 *.pyc
-*.caffemodel
-*.solverstate
-.ropeproject
-*.png
-*.pdf
-*.o
-*.so
-*.gz
-
-notebooks/.ipynb_checkpoints
-.ropeproject/
-__pycache__

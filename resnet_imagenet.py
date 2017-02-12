@@ -22,7 +22,6 @@ def normalize_input(rgb):
   return rgb - DATA_MEAN
 
 def build(image, labels, is_training):
-  #def BatchNorm(x, use_local_stat=None, decay=0.9, epsilon=1e-5):
   weight_decay = 1e-4
   bn_params = {
     # Decay for the moving averages.
@@ -92,11 +91,9 @@ def build(image, labels, is_training):
   net = layers.flatten(net, scope='flatten')
   logits = layers.fully_connected(net, 1000, activation_fn=None, scope='fc1000')
   return logits
-  
+
+
 def name_conversion(caffe_layer_name):
-  """ Convert a caffe parameter name to a tensorflow parameter name as
-      defined in the above model """
-  # beginning & end mapping
   NAME_MAP = {
       'bn_conv1/beta': 'conv0/BatchNorm/beta:0',
       'bn_conv1/gamma': 'conv0/BatchNorm/gamma:0',
@@ -125,24 +122,21 @@ def name_conversion(caffe_layer_name):
     layer_id = re.search('_branch[0-9]([a-z])/', caffe_layer_name).group(1)
     layer_id = ord(layer_id) - ord('a') + 1
 
-  TYPE_DICT = {'res':'conv', 'bn':'BatchNorm'}
+  type_dict = {'res':'conv', 'bn':'BatchNorm'}
   name_map = {'/W': '/weights:0', '/b': '/biases:0', '/beta': '/beta:0',
               '/gamma': '/gamma:0', '/mean/EMA': '/moving_mean:0',
               '/variance/EMA': '/moving_variance:0'}
 
   tf_name = caffe_layer_name[caffe_layer_name.index('/'):]
-  #print(tf_name)
   if tf_name in name_map:
     tf_name = name_map[tf_name]
-  #print(layer_type)
-  #if layer_type != 'bn':
   if layer_type == 'res':
-    layer_type = TYPE_DICT[layer_type] + \
+    layer_type = type_dict[layer_type] + \
         (str(layer_id) if layer_branch == 2 else 'shortcut')
   elif layer_branch == 2:
-    layer_type = 'conv' + str(layer_id) + '/' + TYPE_DICT[layer_type]
+    layer_type = 'conv' + str(layer_id) + '/' + type_dict[layer_type]
   elif layer_branch == 1:
-    layer_type = 'convshortcut/' + TYPE_DICT[layer_type]
+    layer_type = 'convshortcut/' + type_dict[layer_type]
   tf_name = 'group{}/block{}/{}'.format(int(layer_group) - 2,
       layer_block, layer_type) + tf_name
   return tf_name
@@ -159,15 +153,15 @@ def create_init_op(params):
     else:
       print(var.name, ' --> init not found!')
       raise ValueError('Init not found')
+  print('Unused pretrained params:')
   print(list(params.keys()))
   init_op, init_feed = tf.contrib.framework.assign_from_values(init_map)
   return init_op, init_feed
 
-
-if __name__ == '__main__':
-  param = np.load(MODEL_PATH, encoding='latin1').item()
+def evaluate():
+  params = np.load(MODEL_PATH, encoding='latin1').item()
   resnet_param = {}
-  for k, v in param.items():
+  for k, v in params.items():
     newname = name_conversion(k)
     resnet_param[newname] = v
 
@@ -175,9 +169,9 @@ if __name__ == '__main__':
   image = tf.placeholder(tf.float32, [None, img_size, img_size, 3], 'input')
   labels = tf.placeholder(tf.int32, [None], 'label')
   logits = build(image, labels, is_training=False)
-  #all_vars = tf.contrib.framework.get_variables()
-  #for v in all_vars:
-  #  print(v.name)
+  all_vars = tf.contrib.framework.get_variables()
+  for v in all_vars:
+    print(v.name)
   init_op, init_feed = create_init_op(resnet_param)
 
   sess = tf.Session()
@@ -218,3 +212,7 @@ if __name__ == '__main__':
             examples_per_sec, sec_per_batch))
   print(cnt_wrong / N)
   print(top5_wrong / N)
+
+
+if __name__ == '__main__':
+  evaluate()
