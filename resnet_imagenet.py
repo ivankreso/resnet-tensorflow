@@ -4,14 +4,11 @@ import argparse
 import os, re
 import numpy as np
 import h5py
-import skimage as ski
-import skimage.data
-import skimage.transform
-import cv2
 
 import tensorflow.contrib.layers as layers
 from tensorflow.contrib.framework import arg_scope
 
+# model depth can be 50, 101 or 152
 MODEL_DEPTH = 50
 #DATA_MEAN = [103.939, 116.779, 123.68]
 DATA_MEAN = np.load('imagenet_mean.npy')
