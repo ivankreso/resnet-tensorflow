@@ -1,4 +1,8 @@
-##Usage
+Implementation of ResNet in TensorFlow.
+Initialization from ImageNet pretrained weights is supported and this model
+has been successfully fine-tuned on different datasets.
+
+##How to reproduce ImageNet results
 * Download ImageNet dataset [here](http://www.image-net.org/challenges/LSVRC/2015/).
 You will have to register in order to obtain permission.
 * Point `DATA_DIR` in `prepare_imagenet.py` to the data directory and run data preparation.
@@ -17,5 +21,5 @@ DATA_PATH = '/home/kivan/datasets/imagenet/ILSVRC2015/numpy/val_data.hdf5'
 ```
 * Run evaluation:
 ```
-& python resnet_imagenet.py
+$ python resnet_imagenet.py
 ```
